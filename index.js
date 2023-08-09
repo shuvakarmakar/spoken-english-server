@@ -54,6 +54,11 @@ async function run() {
       res.send(result)
     })
 
+    app.post('/users', async (req, res) => { 
+      const body = req.body;
+      
+    })
+
 
 
     // Connect the client to the server	(optional starting in v4.7)
