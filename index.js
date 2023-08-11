@@ -38,10 +38,11 @@ async function run() {
 
     //DB Collections
     const blogsCollection = client.db("Spoken-English").collection("blogs")
+    const coursesCollection = client.db("Spoken-English").collection("Courses")
 
     // APIs
 
-    // Blogs
+    // Blogs **************************************
     app.get("/blogs", async (req, res) => {
       const result = await blogsCollection.find().toArray();
       res.send(result)
@@ -54,9 +55,16 @@ async function run() {
       res.send(result)
     })
 
-    app.post('/users', async (req, res) => { 
-      const body = req.body;
+    // Users *************************************
+    // app.post('/users', async (req, res) => { 
+    //   const body = req.body;
       
+    // })
+
+    // Courses **************************************
+    app.get("/courses", async (req, res) => {
+      const result = await coursesCollection.find().toArray();
+      res.send(result)
     })
 
 
