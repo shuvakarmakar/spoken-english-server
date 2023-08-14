@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
-
+var jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 // middleware
@@ -13,6 +13,45 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Spoken English Server is running");
 });
+
+
+
+
+
+
+// verify Jwt token middleware
+const verifyJwt = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
+  }
+  // bearer token
+
+  const token = authorization.split(" ")[1];
+
+  // verify a token 
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(401).send({ error: true, message:"unauthorized access" });
+    }
+     req.decoded = decoded;
+    
+  });
+  next();
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // Start the server
 app.listen(port, () => {
@@ -33,6 +72,15 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    // verify jwt when login  is successful
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
+
     //DB Collections
     const blogsCollection = client.db("Spoken-English").collection("blogs");
 
@@ -111,6 +159,51 @@ async function run() {
       console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+
+
+
+
+    // admin verification methods
+    app.get("/users/admin/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      //  console.log(email);
+      if (req.decoded.email !== email) {
+        res.send({ admin: false });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { admin: user?.Roll == "admin" };
+      res.send(result);
+    });
+
+
+
+    // instructor verification method
+
+    app.get("/users/instructor/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      if (req.decoded.email !== email) {
+        res.send({ instructor: false });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { instructor: user?.Roll == "Instructor" };
+      res.send(result);
+    });
+
+    // student verification
+    app.get("/users/student/:email", verifyJwt, async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      if (req.decoded.email !== email) {
+        res.send({ student: false });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { student: user?.Roll == "student" };
       res.send(result);
     });
 
