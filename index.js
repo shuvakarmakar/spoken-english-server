@@ -32,7 +32,6 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-<<<<<<< HEAD
     try {
         //DB Collections
         const blogsCollection = client.db("Spoken-English").collection("blogs");
@@ -40,13 +39,6 @@ async function run() {
         const userCollection = client.db("Spoken-English").collection("users");
 
         // APIs
-=======
-  try {
-    //DB Collections
-    const blogsCollection = client.db("Spoken-English").collection("blogs")
-    const coursesCollection = client.db("Spoken-English").collection("Courses")
-    const userCollection = client.db("Spoken-English").collection("users");
->>>>>>> 31295bc22779ca0279f5aff6dca4a829c92e2140
 
         // Blogs
         app.get("/blogs", async (req, res) => {
@@ -54,20 +46,12 @@ async function run() {
             res.send(result);
         });
 
-<<<<<<< HEAD
         app.get("/blog/:id", async (req, res) => {
             const blogId = req.params.id;
             const query = { _id: new ObjectId(blogId) };
             const result = await blogsCollection.findOne(query);
             res.send(result);
         });
-=======
-    // Blogs **************************************
-    app.get("/blogs", async (req, res) => {
-      const result = await blogsCollection.find().toArray();
-      res.send(result);
-    });
->>>>>>> 31295bc22779ca0279f5aff6dca4a829c92e2140
 
         // Courses
         app.get("/courses", async (req, res) => {
@@ -75,31 +59,12 @@ async function run() {
             res.send(result);
         });
 
-<<<<<<< HEAD
         app.get("/course/:id", async (req, res) => {
             const courseId = req.params.id;
             const query = { _id: new ObjectId(courseId) };
             const result = await coursesCollection.findOne(query);
             res.send(result);
         })
-=======
-    // Users *************************************
-    // app.post('/users', async (req, res) => { 
-    //   const body = req.body;
-      
-    // })
-
-    // Courses **************************************
-    app.get("/courses", async (req, res) => {
-      const result = await coursesCollection.find().toArray();
-      res.send(result)
-    })
-    // save logged users
-    app.post("/AddUsers", async (req, res) => {
-      const user = req.body;
-      const query = { email: user.email };
-      const existingUser = await userCollection.findOne(query);
->>>>>>> 31295bc22779ca0279f5aff6dca4a829c92e2140
 
 
         // save logged users
@@ -164,7 +129,7 @@ async function run() {
         });
 
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log(
