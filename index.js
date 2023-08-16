@@ -34,13 +34,13 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     //DB Collections
-    const blogsCollection = client.db("Spoken-English").collection("blogs");
-
+    const blogsCollection = client.db("Spoken-English").collection("blogs")
+    const coursesCollection = client.db("Spoken-English").collection("Courses")
     const userCollection = client.db("Spoken-English").collection("users");
 
     // APIs
 
-    // Blogs
+    // Blogs **************************************
     app.get("/blogs", async (req, res) => {
       const result = await blogsCollection.find().toArray();
       res.send(result);
@@ -53,6 +53,17 @@ async function run() {
       res.send(result);
     });
 
+    // Users *************************************
+    // app.post('/users', async (req, res) => { 
+    //   const body = req.body;
+      
+    // })
+
+    // Courses **************************************
+    app.get("/courses", async (req, res) => {
+      const result = await coursesCollection.find().toArray();
+      res.send(result)
+    })
     // save logged users
     app.post("/AddUsers", async (req, res) => {
       const user = req.body;
