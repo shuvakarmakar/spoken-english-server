@@ -9,15 +9,11 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+
 // Ping Endpoint
 app.get("/", (req, res) => {
   res.send("Spoken English Server is running");
 });
-
-
-
-
-
 
 // verify Jwt token middleware
 const verifyJwt = (req, res, next) => {
@@ -31,6 +27,7 @@ const verifyJwt = (req, res, next) => {
 
   const token = authorization.split(" ")[1];
 
+  
   // verify a token 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
     if (err) {
