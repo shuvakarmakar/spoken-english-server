@@ -212,7 +212,21 @@ async function run() {
         const result = { student: user?.Roll == "student" };
         res.send(result);
       });
+    
+    // get single user from db
 
+    app.get("/SingleUser/:id",async (req, res) => { 
+       const id = req.params.id;
+       console.log(id);
+      const filter = {_id: new ObjectId(id)};
+      const result = await userCollection.findOne(filter);
+      res.send(result);
+
+    });
+
+
+
+    
     
       // Delete user from db
       app.delete("/users/DeleteUsers/:id", async (req, res) => {
