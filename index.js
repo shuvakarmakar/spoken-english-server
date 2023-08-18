@@ -244,28 +244,28 @@ async function run() {
             res.send(result);
         });
 
-        // student verification
-        app.get("/users/student/:email", verifyJwt, async (req, res) => {
-            const email = req.params.email;
-            console.log(email);
-            if (req.decoded.email !== email) {
-                res.send({ student: false });
-            }
-            const query = { email: email };
-            const user = await userCollection.findOne(query);
-            const result = { student: user?.Roll == "student" };
-            res.send(result);
-        });
+      // student verification
+      app.get("/users/student/:email", verifyJwt, async (req, res) => {
+        const email = req.params.email;
+        console.log(email);
+        if (req.decoded.email !== email) {
+          res.send({ student: false });
+        }
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const result = { student: user?.Roll == "student" };
+        res.send(result);
+      });
 
-
-        // Delete user from db
-        app.delete("/users/DeleteUsers/:id", async (req, res) => {
-            const id = req.params.id;
-            console.log(id);
-            const query = { _id: new ObjectId(id) };
-            const result = await userCollection.deleteOne(query);
-            res.send(result);
-        });
+    
+      // Delete user from db
+      app.delete("/users/DeleteUsers/:id", async (req, res) => {
+        const id = req.params.id;
+        console.log(id);
+        const query = { _id: new ObjectId(id) };
+        const result = await userCollection.deleteOne(query);
+        res.send(result);
+      });
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
