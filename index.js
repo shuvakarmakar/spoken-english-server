@@ -10,7 +10,11 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Replace with your frontend's domain
+  })
+);
 // Ping Endpoint
 app.get("/", (req, res) => {
     res.send("Spoken English Server is running");
@@ -66,7 +70,7 @@ const store_id = process.env.STORE_ID
 const store_passwd = process.env.STORE_PASS
 const is_live = false //true for live, false for sandbox
 
-
+console.log(store_id,store_passwd);
 
 async function run() {
     try {
@@ -75,7 +79,7 @@ async function run() {
         app.post("/jwt", (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: "1h",
+                expiresIn: "2h",
             });
             res.send({ token });
         });
@@ -95,48 +99,52 @@ async function run() {
         // APIs
 
         // FOr Payment Gateway
+      
+
         app.post("/order", async (req, res) => {
             const order = req.body;
             // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
-
+          console.log(order.price);
             const data = {
-                total_amount: order.price,
-                // currency: 'BDT',
-                tran_id: tran_id, // use unique tran_id for each api call
-                success_url: 'http://localhost:3030/success',
-                fail_url: 'http://localhost:3030/fail',
-                cancel_url: 'http://localhost:3030/cancel',
-                ipn_url: 'http://localhost:3030/ipn',
-                shipping_method: 'Courier',
-                product_name: order.course_name,
-                product_category: 'Educational',
-                product_profile: 'general',
-                cus_name: order.billingData.fullName,
-                cus_email: order.billingData.email,
-                cus_add1: order.billingData.address,
-                cus_city: order.billingData.city,
-                cus_country: order.billingData.country,
-                cus_postcode: order.billingData.postalCode,
-                cus_phone: order.billingData.contactNumber,
-                // cus_fax: '01711111111',
-                ship_name: 'Customer Name',
-                ship_add1: 'Dhaka',
-                ship_add2: 'Dhaka',
-                ship_city: 'Dhaka',
-                ship_state: 'Dhaka',
-                ship_postcode: 1000,
-                ship_country: 'Bangladesh',
+              total_amount: order.price,
+               currency: 'BDT',
+              tran_id: tran_id, // use unique tran_id for each api call
+              success_url: "http://localhost:5173/success",
+              fail_url: "http://localhost:5173/fail",
+              cancel_url: "http://localhost:5173/cancel",
+              ipn_url: "http://localhost:5173/ipn",
+              shipping_method: "Courier",
+              product_name: order.course_name,
+              product_category: "Educational",
+              product_profile: "general",
+              cus_name: order.billingData.fullName,
+              cus_email: order.billingData.email,
+              cus_add1: order.billingData.address,
+              cus_city: order.billingData.city,
+              cus_country: order.billingData.country,
+              cus_postcode: order.billingData.postalCode,
+              cus_phone: order.billingData.contactNumber,
+               cus_fax: '01711111111',
+              ship_name: "Customer Name",
+              ship_add1: "Dhaka",
+              ship_add2: "Dhaka",
+              ship_city: "Dhaka",
+              ship_state: "Dhaka",
+              ship_postcode: 1000,
+              ship_country: "Bangladesh",
             };
 
             console.log(data);
             const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
             sslcz.init(data).then(apiResponse => {
                 // Redirect the user to payment gateway
-                let GatewayPageURL = apiResponse.GatewayPageURL
-                res.send({ url: GatewayPageURL })
-                console.log('Redirecting to: ', GatewayPageURL)
+              let GatewayPageURL=(apiResponse.GatewayPageURL)
+            //   console.log(GatewayPageURL
+               res.json({ GatewayPageURL });
+                 console.log("Redirecting to: ", GatewayPageURL);  
             });
         },)
+       
 
 
         // Blogs
