@@ -15,9 +15,9 @@ app.use(express.json());
 // Serve static files from the "pdfs" directory
 app.use("/pdfs", express.static(path.join(__dirname, "pdfs")));
 app.use(
-    cors({
-        origin: "http://localhost:5173", // Replace with your frontend's domain
-    })
+  cors({
+    origin:"https://spoken-english-65d22.web.app", // Replace with your frontend's domain
+  })
 );
 // Ping Endpoint
 app.get("/", (req, res) => {
