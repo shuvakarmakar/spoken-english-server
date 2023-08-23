@@ -14,11 +14,12 @@ app.use(cors());
 app.use(express.json());
 // Serve static files from the "pdfs" directory
 app.use("/pdfs", express.static(path.join(__dirname, "pdfs")));
-app.use(
-  cors({
-    origin:"https://spoken-english-65d22.web.app", // Replace with your frontend's domain
-  })
-);
+// app.use(
+//   cors({
+//     origin: "https://spoken-english-65d22.web.app", // Replace with your frontend's domain
+//     origin:"http://localhost:5173", // Replace with your frontend's domain
+//   })
+// );
 // Ping Endpoint
 app.get("/", (req, res) => {
     res.send("Spoken English Server is running");
@@ -395,6 +396,25 @@ async function run() {
             const result = await userCollection.deleteOne(query);
             res.send(result);
         });
+      
+      app.put("/UpdateProfile/:id", async (req, res) => { 
+        const id = req.params.id;
+        const user = req.body;
+        const filter={_id: new ObjectId(id)}
+          const updateDoc = {
+            $set: {
+              name: user.name,
+              email: user.email,
+              phone: user.phone,
+              address: user.address,
+              education: user.education,
+
+            },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+         console.log(id,user);
+      });
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
