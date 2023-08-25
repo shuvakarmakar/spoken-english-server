@@ -168,7 +168,7 @@ async function run() {
           );
           if (result.modifiedCount > 0) {
             res.redirect(
-              `http://localhost:5173/payment/success/${req.params.tranId}`
+              `https://spoken-english-65d22.web.app/payment/success/${req.params.tranId}`
             );
           }
         });
@@ -439,6 +439,13 @@ async function run() {
 
 
         });
+      app.get("/SingleUser:/id", async (req, res) => { 
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const result = await userCollection.findOne(filter);
+        res.send(result);
+        
+      });
 
         // get feedback
 
