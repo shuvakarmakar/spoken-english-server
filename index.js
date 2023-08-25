@@ -112,10 +112,10 @@ async function run() {
           total_amount: order.price,
           currency: "BDT",
           tran_id: tran_id, // use unique tran_id for each api call
-          success_url: `http://localhost:5000/payment/success/${tran_id}`,
-          fail_url:    `http://localhost:5000/payment/fail/${tran_id}`,
-          cancel_url: "http://localhost:5000/cancel",
-          ipn_url: "http://localhost:5000/ipn",
+          success_url:`https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
+          fail_url:`https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
+          cancel_url: "https://spoken-english-65d22.web.app/cancel",
+          ipn_url: "https://spoken-english-65d22.web.app/ipn",
           shipping_method: "Courier",
           product_name: order.courseName,
           product_category: "Educational",
@@ -490,7 +490,7 @@ async function run() {
         })
 
       // Connect the client to the server	(optional starting in v4.7)
-      await client.connect();
+      // await client.connect();
       // Send a ping to confirm a successful connection
       await client.db("admin").command({ ping: 1 });
       console.log(
