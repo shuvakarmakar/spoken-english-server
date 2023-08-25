@@ -112,12 +112,12 @@ async function run() {
           total_amount: order.price,
           currency: "BDT",
           tran_id: tran_id, // use unique tran_id for each api call
-          success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
-          fail_url: "https://spoken-english-65d22.web.app/fail",
-          cancel_url: "https://spoken-english-65d22.web.app/cancel",
-          ipn_url: "https://spoken-english-65d22.web.app/ipn",
+          success_url: `http://localhost:5000/payment/success/${tran_id}`,
+          fail_url:    `http://localhost:5000/payment/fail/${tran_id}`,
+          cancel_url: "http://localhost:5000/cancel",
+          ipn_url: "http://localhost:5000/ipn",
           shipping_method: "Courier",
-          product_name: order.course_name,
+          product_name: order.courseName,
           product_category: "Educational",
           product_profile: "general",
           cus_name: order.billingData.fullName,
@@ -128,8 +128,8 @@ async function run() {
           cus_postcode: order.billingData.postalCode,
           cus_phone: order.billingData.contactNumber,
           cus_fax: "01711111111",
-          ship_name: "Customer Name",
-          ship_add1: "Dhaka",
+          ship_name: order.instructorName,
+          ship_add1: order.instructorEmail,
           ship_add2: "Dhaka",
           ship_city: "Dhaka",
           ship_state: "Dhaka",
@@ -172,7 +172,21 @@ async function run() {
             );
           }
         });
+
+        app.post("/payment/fail/:tranId", async (req, res) => {
+            // console.log(req.params.tranId);
+            const result = await orderCollection.deleteOne(
+              { transectionId: req.params.tranId },
+            );
+            if (result.deletedCount) {
+              res.redirect(
+                `http://localhost:5173/payment/fail/${req.params.tranId}`
+              );
+            }
+          });
       });
+
+
 
       app.get("/enrolled-courses/:userId", async (req, res) => {
         const userId = req.params.userId;
@@ -189,7 +203,8 @@ async function run() {
             return {
               _id: order.data.transectionId,
               product_name: order.data.product_name,
-              instructor: order.data.instructor,
+              instructor_name: order.data.ship_name,
+              instructor_email: order.data.ship_add1,
               total_amount: order.data.total_amount,
               currency: order.data.currency,
               paidStatus: order.paidStatus,
@@ -228,6 +243,25 @@ async function run() {
         const result = await coursesCollection.findOne(query);
         res.send(result);
       });
+
+    //   For Adding Courses
+      app.post("/addCourses", async(req, res) =>{
+        try {
+            const courses = req.body;
+        
+            await coursesCollection.insertOne(courses);
+        
+            res.status(201).json({ message: 'Courses added successfully' });
+          } catch (error) {
+            console.error('Error adding courses:', error);
+            res.status(500).json({ error: 'Internal server error' });
+          }
+      })
+
+
+
+
+
 
       // save logged users
       app.post("/AddUsers", async (req, res) => {
