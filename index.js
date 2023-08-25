@@ -112,10 +112,10 @@ async function run() {
           total_amount: order.price,
           currency: "BDT",
           tran_id: tran_id, // use unique tran_id for each api call
-          success_url: `http://localhost:5173/payment/success/${tran_id}`,
-          fail_url: "http://localhost:5173/fail",
-          cancel_url: "http://localhost:5173/cancel",
-          ipn_url: "http://localhost:5173/ipn",
+          success_url: `http://localhost:5000/payment/success/${tran_id}`,
+          fail_url:    `http://localhost:5000/payment/fail/${tran_id}`,
+          cancel_url: "http://localhost:5000/cancel",
+          ipn_url: "http://localhost:5000/ipn",
           shipping_method: "Courier",
           product_name: order.courseName,
           product_category: "Educational",
@@ -137,7 +137,7 @@ async function run() {
           ship_country: "Bangladesh",
         };
 
-        console.log(data);
+        // console.log(data);
         const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
         sslcz.init(data).then((apiResponse) => {
           // Redirect the user to payment gateway
@@ -172,7 +172,21 @@ async function run() {
             );
           }
         });
+
+        app.post("/payment/fail/:tranId", async (req, res) => {
+            // console.log(req.params.tranId);
+            const result = await orderCollection.deleteOne(
+              { transectionId: req.params.tranId },
+            );
+            if (result.deletedCount) {
+              res.redirect(
+                `http://localhost:5173/payment/fail/${req.params.tranId}`
+              );
+            }
+          });
       });
+
+
 
       app.get("/enrolled-courses/:userId", async (req, res) => {
         const userId = req.params.userId;
