@@ -229,6 +229,25 @@ async function run() {
         res.send(result);
       });
 
+    //   For Adding Courses
+      app.post("/addCourses", async(req, res) =>{
+        try {
+            const courses = req.body;
+        
+            await coursesCollection.insertOne(courses);
+        
+            res.status(201).json({ message: 'Courses added successfully' });
+          } catch (error) {
+            console.error('Error adding courses:', error);
+            res.status(500).json({ error: 'Internal server error' });
+          }
+      })
+
+
+
+
+
+
       // save logged users
       app.post("/AddUsers", async (req, res) => {
         const user = req.body;
