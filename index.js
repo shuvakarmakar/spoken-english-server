@@ -112,12 +112,12 @@ async function run() {
           total_amount: order.price,
           currency: "BDT",
           tran_id: tran_id, // use unique tran_id for each api call
-          success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
-          fail_url: "https://spoken-english-65d22.web.app/fail",
-          cancel_url: "https://spoken-english-65d22.web.app/cancel",
-          ipn_url: "https://spoken-english-65d22.web.app/ipn",
+          success_url: `http://localhost:5173/payment/success/${tran_id}`,
+          fail_url: "http://localhost:5173/fail",
+          cancel_url: "http://localhost:5173/cancel",
+          ipn_url: "http://localhost:5173/ipn",
           shipping_method: "Courier",
-          product_name: order.course_name,
+          product_name: order.courseName,
           product_category: "Educational",
           product_profile: "general",
           cus_name: order.billingData.fullName,
@@ -128,8 +128,8 @@ async function run() {
           cus_postcode: order.billingData.postalCode,
           cus_phone: order.billingData.contactNumber,
           cus_fax: "01711111111",
-          ship_name: "Customer Name",
-          ship_add1: "Dhaka",
+          ship_name: order.instructorName,
+          ship_add1: order.instructorEmail,
           ship_add2: "Dhaka",
           ship_city: "Dhaka",
           ship_state: "Dhaka",
@@ -137,7 +137,7 @@ async function run() {
           ship_country: "Bangladesh",
         };
 
-        // console.log(data);
+        console.log(data);
         const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
         sslcz.init(data).then((apiResponse) => {
           // Redirect the user to payment gateway
@@ -189,7 +189,8 @@ async function run() {
             return {
               _id: order.data.transectionId,
               product_name: order.data.product_name,
-              instructor: order.data.instructor,
+              instructor_name: order.data.ship_name,
+              instructor_email: order.data.ship_add1,
               total_amount: order.data.total_amount,
               currency: order.data.currency,
               paidStatus: order.paidStatus,
