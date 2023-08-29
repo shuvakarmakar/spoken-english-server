@@ -75,7 +75,7 @@ const store_id = process.env.STORE_ID;
 const store_passwd = process.env.STORE_PASS;
 const is_live = false; //true for live, false for sandbox
 
-console.log(store_id, store_passwd);
+// console.log(store_id, store_passwd);
 
 async function run() {
   try {
@@ -162,7 +162,7 @@ async function run() {
         // console.log("Redirecting to: ", GatewayPageURL);
       });
 
-      app.post("/payment/success/:tranId", async (req, res) => {
+      app.put("/payment/success/:tranId", async (req, res) => {
         // console.log(req.params.tranId);
         const result = await orderCollection.updateOne(
           { transectionId: req.params.tranId },
@@ -192,9 +192,9 @@ async function run() {
       });
     });
 
-    app.get("/enrolled-courses/:userId", async (req, res) => {
-      const userId = req.params.userId;
-      // console.log(userId);
+      app.get("/enrolled-courses/:userId", async (req, res) => {
+        const userId = req.params.userId;
+        // console.log(userId);
 
       try {
         // Fetch user orders from orderCollection
@@ -215,38 +215,93 @@ async function run() {
           };
         });
 
-        res.json(enrolledCourses);
-      } catch (error) {
-        console.error("Error fetching enrolled courses:", error);
-        res.status(500).json({ error: "Internal server error" });
-      }
-    });
+          res.json(enrolledCourses);
+        } catch (error) {
+          console.error("Error fetching enrolled courses:", error);
+          res.status(500).json({ error: "Internal server error" });
+        }
+      });
 
-    // Blogs
-    app.get("/blogs", async (req, res) => {
-      const result = await blogsCollection.find().toArray();
-      res.send(result);
-    });
+      // Blogs
+      app.get("/blogs", async (req, res) => {
+        const result = await blogsCollection.find().toArray();
+        res.send(result);
+      });
 
-    app.get("/blog/:id", async (req, res) => {
-      const blogId = req.params.id;
-      const query = { _id: new ObjectId(blogId) };
-      const result = await blogsCollection.findOne(query);
-      res.send(result);
-    });
+      app.get("/blog/:id", async (req, res) => {
+        const blogId = req.params.id;
+        const query = { _id: new ObjectId(blogId) };
+        const result = await blogsCollection.findOne(query);
+        res.send(result);
+      });
 
-    // Courses
-    app.get("/courses", async (req, res) => {
-      const result = await coursesCollection.find().toArray();
-      res.send(result);
-    });
+      // Courses
+      app.get("/courses", async (req, res) => {
+        const result = await coursesCollection.find().toArray();
+        res.send(result);
+      });
 
-    app.get("/course/:id", async (req, res) => {
-      const courseId = req.params.id;
-      const query = { _id: new ObjectId(courseId) };
-      const result = await coursesCollection.findOne(query);
-      res.send(result);
-    });
+      app.get("/course/:id", async (req, res) => {
+        const courseId = req.params.id;
+        const query = { _id: new ObjectId(courseId) };
+        const result = await coursesCollection.findOne(query);
+        res.send(result);
+      });
+
+        //   For Adding Courses
+        app.post("/addCourses", async (req, res) => {
+            try {
+                const courses = req.body;
+
+                await coursesCollection.insertOne(courses);
+
+                res.status(201).json({ message: 'Courses added successfully' });
+            } catch (error) {
+                console.error('Error adding courses:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            }
+        })
+
+        // For Display each instructor Email Wise added Course
+        app.get("/added-courses-by-instructor/:instructorEmail", async (req, res) => {
+            const instructorEmail = req.params.instructorEmail;
+            // console.log(instructorEmail);
+
+            try {
+                // Fetch enrolled courses for the instructor
+                const enrolledCourses = await coursesCollection
+                    .find({ "instructorEmail": instructorEmail })
+                    .toArray();
+
+                // Extract relevant course information from enrolled courses
+                const courses = enrolledCourses.map(course => {
+                    return {
+                        _id: course._id,
+                        courseName: course.courseName,
+                        availableSeats: course.availableSeats,
+                        imageURL: course.imageURL
+                        // Include other course information here
+                    };
+                });
+
+                res.json(courses);
+            } catch (error) {
+                console.error("Error fetching enrolled courses:", error);
+                res.status(500).json({ error: "Internal server error" });
+            }
+        });
+
+
+        // Delete Course from Instructor Dashboard
+        app.delete("/deleteCourse/:id", async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const query = { _id: new ObjectId(id) };
+            const result = await coursesCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
 
     //   For Adding Courses
     app.post("/addCourses", async (req, res) => {
@@ -262,27 +317,27 @@ async function run() {
       }
     });
 
-    // save logged users
-    app.post("/AddUsers", async (req, res) => {
-      const user = req.body;
-      const query = { email: user.email };
-      const existingUser = await userCollection.findOne(query);
+      // save logged users
+      app.post("/AddUsers", async (req, res) => {
+        const user = req.body;
+        const query = { email: user.email };
+        const existingUser = await userCollection.findOne(query);
 
-      if (existingUser) {
-        return res.send({ message: "user already exists" });
-      }
+        if (existingUser) {
+          return res.send({ message: "user already exists" });
+        }
 
-      const result = await userCollection.insertOne(user);
-      res.send(result);
-    });
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+      });
 
-    // Get user collection
-    app.get("/GetUsers", async (req, res) => {
-      const result = await userCollection.find().toArray();
-      res.send(result);
-    });
+      // Get user collection
+      app.get("/GetUsers", async (req, res) => {
+        const result = await userCollection.find().toArray();
+        res.send(result);
+      });
 
-    // apply form for becoming a instructor
+      // apply form for becoming a instructor
 
     app.post(
       "/BecomeInstructor",
@@ -293,94 +348,90 @@ async function run() {
             req.body;
           const pdfFile = req.file;
 
-          // Save the data to MongoDB
-          const application = {
-            fullName,
-            email,
-            phoneNumber,
-            bio,
-            pdfFile: pdfFile.buffer,
-            isRead,
-            createAt,
-          };
+            // Save the data to MongoDB
+            const application = {
+              fullName,
+              email,
+              phoneNumber,
+              bio,
+              pdfFile: pdfFile.buffer,
+            };
 
-          await FormCollection.insertOne(application);
+            await FormCollection.insertOne(application);
 
-          res.status(201).send("Application submitted successfully.");
+            res.status(201).send("Application submitted successfully.");
+          } catch (error) {
+            console.error("Error saving application:", error);
+            res.status(500).send("Error submitting application.");
+          }
+        }
+      );
+
+      //    get all applications in admin dashboard
+      // Express route to fetch submitted applications
+      app.get("/get/applications", async (req, res) => {
+        try {
+          const applications = await FormCollection.find().toArray();
+          res.status(200).json(applications);
         } catch (error) {
-          console.error("Error saving application:", error);
-          res.status(500).send("Error submitting application.");
+          console.error("Error fetching applications:", error);
+          res.status(500).send("Error fetching applications.");
         }
-      }
-    );
+      });
 
-    //    get all applications in admin dashboard
-    // Express route to fetch submitted applications
-    app.get("/get/applications", async (req, res) => {
-      try {
-        const applications = await FormCollection.find()
-          .sort({ createAt: -1 })
-          .toArray();
-        res.status(200).json(applications);
-      } catch (error) {
-        console.error("Error fetching applications:", error);
-        res.status(500).send("Error fetching applications.");
-      }
-    });
+      // download application pdf
 
-    // download application pdf
+      app.get("/api/pdf/:id", async (req, res) => {
+        try {
+          const applicationId = req.params.id;
 
-    app.get("/api/pdf/:id", async (req, res) => {
-      try {
-        const applicationId = req.params.id;
+          const application = await FormCollection.findOne({
+            _id: new ObjectId(applicationId),
+          });
 
-        const application = await FormCollection.findOne({
-          _id: new ObjectId(applicationId),
-        });
+          if (!application) {
+            return res.status(404).send("Application not found");
+          }
 
-        if (!application) {
-          return res.status(404).send("Application not found");
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=${applicationId}.pdf`
+          );
+          res.send(application.pdfFile.buffer);
+        } catch (error) {
+          console.error("Error sending PDF:", error);
+          res.status(500).send("Error sending PDF.");
         }
+      });
 
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename=${applicationId}.pdf`
-        );
-        res.send(application.pdfFile.buffer);
-      } catch (error) {
-        console.error("Error sending PDF:", error);
-        res.status(500).send("Error sending PDF.");
-      }
-    });
+      // make admin
+      app.patch("/users/admin/:id", async (req, res) => {
+        const id = req.params.id;
+        console.log(id);
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            Roll: "admin",
+            disabled: true,
+          },
+        };
 
-    // make admin
-    app.patch("/users/admin/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id);
-      const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          Roll: "admin",
-          disabled: true,
-        },
-      };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      });
 
-      const result = await userCollection.updateOne(filter, updateDoc);
-      res.send(result);
-    });
-
-    //make user to instructor
-    app.patch("/users/instructor/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id);
-      const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          Roll: "Instructor",
-          InstructorDisabled: true,
-        },
-      };
+      //make user to instructor
+      app.patch("/users/instructor/:id", async (req, res) => {
+        const id = req.params.id;
+        console.log(id);
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            Roll: "Instructor",
+            InstructorDisabled: true,
+          },
+        };
 
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -433,46 +484,46 @@ async function run() {
       res.send(result);
     });
 
-    // admin verification methods
-    app.get("/users/admin/:email", verifyJwt, async (req, res) => {
-      const email = req.params.email;
-      //  console.log(email);
-      if (req.decoded.email !== email) {
-        res.send({ admin: false });
-      }
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      const result = { admin: user?.Roll == "admin" };
-      res.send(result);
-    });
+      // admin verification methods
+      app.get("/users/admin/:email", verifyJwt, async (req, res) => {
+        const email = req.params.email;
+        //  console.log(email);
+        if (req.decoded.email !== email) {
+          res.send({ admin: false });
+        }
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const result = { admin: user?.Roll == "admin" };
+        res.send(result);
+      });
 
-    // instructor verification method
+      // instructor verification method
 
-    app.get("/users/instructor/:email", verifyJwt, async (req, res) => {
-      const email = req.params.email;
-      console.log(email);
-      if (req.decoded.email !== email) {
-        res.send({ instructor: false });
-      }
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      const result = { instructor: user?.Roll == "Instructor" };
-      res.send(result);
-    });
+      app.get("/users/instructor/:email", verifyJwt, async (req, res) => {
+        const email = req.params.email;
+        console.log(email);
+        if (req.decoded.email !== email) {
+          res.send({ instructor: false });
+        }
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const result = { instructor: user?.Roll == "Instructor" };
+        res.send(result);
+      });
 
-    // student
+      // student
 
-    app.get("/users/student/:email", verifyJwt, async (req, res) => {
-      const email = req.params.email;
-      console.log(email);
-      if (req.decoded.email !== email) {
-        res.send({ student: false });
-      }
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      const result = { student: user?.Roll == "student" };
-      res.send(result);
-    });
+      app.get("/users/student/:email", verifyJwt, async (req, res) => {
+        const email = req.params.email;
+        console.log(email);
+        if (req.decoded.email !== email) {
+          res.send({ student: false });
+        }
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const result = { student: user?.Roll == "student" };
+        res.send(result);
+      });
 
     // Delete user from db
     app.delete("/users/DeleteUsers/:id", async (req, res) => {
@@ -505,23 +556,23 @@ async function run() {
 
     // update profile settings
 
-    app.put("/UpdateProfile/:id", async (req, res) => {
-      const id = req.params.id;
-      const user = req.body;
-      const filter = { _id: new ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          address: user.address,
-          education: user.education,
-        },
-      };
-      const result = await userCollection.updateOne(filter, updateDoc);
-      res.send(result);
-      console.log(id, user);
-    });
+      app.put("/UpdateProfile/:id", async (req, res) => {
+        const id = req.params.id;
+        const user = req.body;
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            address: user.address,
+            education: user.education,
+          },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+        console.log(id, user);
+      });
 
     // update user profile img
     app.put("/users/profileImage/upload/:email", async (req, res) => {
