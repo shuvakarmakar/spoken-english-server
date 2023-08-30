@@ -186,7 +186,7 @@ async function run() {
         });
         if (result.deletedCount) {
           res.redirect(
-            `http://localhost:5173/payment/fail/${req.params.tranId}`
+            `https://spoken-english-65d22.web.app/payment/fail/${req.params.tranId}`
           );
         }
       });
@@ -205,7 +205,7 @@ async function run() {
         // Extract relevant course information from user's orders
         const enrolledCourses = userOrders.map((order) => {
           return {
-            _id: order.data.transectionId,
+            _id: order.transectionId,
             product_name: order.data.product_name,
             instructor_name: order.data.ship_name,
             instructor_email: order.data.ship_add1,
@@ -300,6 +300,27 @@ async function run() {
             const result = await coursesCollection.deleteOne(query);
             res.send(result);
         });
+
+        // Start Course from Student Dashboard
+        app.get("/startCourse/:courseName", async (req, res) => {
+            const courseName = req.params.courseName;
+            // console.log(courseName);
+            try {
+                // Fetch course details by courseName from your database
+                const course = await coursesCollection.findOne({ courseName });
+                // console.log(course.courseVideos);
+                if (!course) {
+                    return res.status(404).json({ error: 'Course not found' });
+                }
+
+                res.json(course);
+            } catch (error) {
+                console.error("Error fetching course details:", error);
+                res.status(500).json({ error: "Internal server error" });
+            }
+        });
+
+
 
 
 
