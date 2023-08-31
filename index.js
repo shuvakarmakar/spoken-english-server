@@ -110,94 +110,7 @@ async function run() {
 
     // FOr Payment Gateway
 
-//     app.post("/order", async (req, res) => {
-//       const order = req.body;
-//       // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
-//       // console.log(order.price);
-//       const data = {
-//         total_amount: order.price,
-//         currency: "BDT",
-//         tran_id: tran_id, // use unique tran_id for each api call
-//         success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
-//         fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
-//         cancel_url: "https://spoken-english-65d22.web.app/cancel",
-//         ipn_url: "https://spoken-english-65d22.web.app/ipn",
-//         shipping_method: "Courier",
-//         product_name: order.courseName,
-//         product_category: "Educational",
-//         product_profile: "general",
-//         cus_name: order.billingData.fullName,
-//         cus_email: order.billingData.email,
-//         cus_add1: order.billingData.address,
-//         cus_city: order.billingData.city,
-//         cus_country: order.billingData.country,
-//         cus_postcode: order.billingData.postalCode,
-//         cus_phone: order.billingData.contactNumber,
-//         cus_fax: "01711111111",
-//         ship_name: order.instructorName,
-//         ship_add1: order.instructorEmail,
-//         ship_add2: "Dhaka",
-//         ship_city: "Dhaka",
-//         ship_state: "Dhaka",
-//         ship_postcode: 1000,
-//         ship_country: "Bangladesh",
-//       };
 
-//      // Initialize SSLCommerzPayment and redirect user to gateway
-//     const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
-//     const apiResponse = await sslcz.init(data);
-//     const GatewayPageURL = apiResponse.GatewayPageURL;
-
-//     // Insert order with initial paidStatus as false
-//     const finalOrder = {
-//       data,
-//       paidStatus: false,
-//       transectionId: tran_id,
-//     };
-//     await orderCollection.insertOne(finalOrder);
-
-//     res.json({ GatewayPageURL });
-//   } catch (error) {
-//     console.log(error.message);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// })
-
-    // app.put("/payment/success/:tranId", async (req, res) => {
-    //   try {
-    //     const transId = req.params.tranId;
-
-    //     if (transId) {
-    //       const result = await orderCollection.updateOne(
-    //         { transectionId: transId },
-    //         {
-    //           $set: {
-    //             paidStatus: true,
-    //           },
-    //         }
-    //       );
-
-    //       if (result.modifiedCount > 0) {
-    //         res.redirect(
-    //           `https://spoken-english-65d22.web.app/payment/success/${req.params.tranId}`
-    //         );
-    //       } else {
-    //         res.status(404).json({ error: "Transaction not found" });
-    //       }
-    //     } else {
-    //       res.status(400).json({ error: "Invalid transaction ID" });
-    //     }
-    //   } catch (error) {
-    //     console.log(error.message);
-    //     res.status(500).json({ error: "Internal server error" });
-    //   }
-    // });
-      
-      
-      
-// });
-  
-  
   app.post("/order", async (req, res) => {
     const order = req.body;
     // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
@@ -250,6 +163,9 @@ async function run() {
       // console.log("Redirecting to: ", GatewayPageURL);
     });
     
+    
+  });
+    
     app.put("/payment/success/:tranId", async (req, res) => {
       console.log(req.params.tranId);
       const transId = req.params.tranId;
@@ -274,8 +190,6 @@ async function run() {
         console.log(error.message);
       }
     });
-  });
-    
 
 app.post("/payment/fail/:tranId", async (req, res) => {
   // console.log(req.params.tranId);
@@ -303,7 +217,7 @@ app.post("/payment/fail/:tranId", async (req, res) => {
         // Extract relevant course information from user's orders
         const enrolledCourses = userOrders.map((order) => {
           return {
-            _id: order.data.transectionId,
+            _id: order.transectionId,
             product_name: order.data.product_name,
             instructor_name: order.data.ship_name,
             instructor_email: order.data.ship_add1,
@@ -338,6 +252,27 @@ app.post("/payment/fail/:tranId", async (req, res) => {
       const result = await coursesCollection.find().toArray();
       res.send(result);
     });
+        // Start Course from Student Dashboard
+        app.get("/startCourse/:courseName", async (req, res) => {
+            const courseName = req.params.courseName;
+            // console.log(courseName);
+            try {
+                // Fetch course details by courseName from your database
+                const course = await coursesCollection.findOne({ courseName });
+                // console.log(course.courseVideos);
+                if (!course) {
+                    return res.status(404).json({ error: 'Course not found' });
+                }
+
+                res.json(course);
+            } catch (error) {
+                console.error("Error fetching course details:", error);
+                res.status(500).json({ error: "Internal server error" });
+            }
+        });
+
+
+
 
     app.get("/course/:id", async (req, res) => {
       const courseId = req.params.id;
