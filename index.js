@@ -97,12 +97,9 @@ async function run() {
     const userCollection = client.db("Spoken-English").collection("users");
     const orderCollection = client.db("Spoken-English").collection("orders");
     const HelpCollection = client.db("Spoken-English").collection("helpForms");
-    const FormCollection = client
-      .db("Spoken-English")
-      .collection("instructorApplications");
-    const FeedbackCollection = client
-      .db("Spoken-English")
-      .collection("feedback");
+    const FormCollection = client.db("Spoken-English").collection("instructorApplications");
+    const FeedbackCollection = client .db("Spoken-English").collection("feedback");
+    const FriendRequest = client .db("Spoken-English").collection("FriendRequest");
 
     // For Transection Id of SSL Commerze
     const tran_id = new ObjectId().toString();
@@ -110,62 +107,59 @@ async function run() {
 
     // FOr Payment Gateway
 
-
-  app.post("/order", async (req, res) => {
-    const order = req.body;
-    // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
-    // console.log(order.price);
-    const data = {
-      total_amount: order.price,
-      currency: "BDT",
-      tran_id: tran_id, // use unique tran_id for each api call
-      success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
-      fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
-      cancel_url: "https://spoken-english-65d22.web.app/cancel",
-      ipn_url: "https://spoken-english-65d22.web.app/ipn",
-      shipping_method: "Courier",
-      product_name: order.courseName,
-      product_category: "Educational",
-      product_profile: "general",
-      cus_name: order.billingData.fullName,
-      cus_email: order.billingData.email,
-      cus_add1: order.billingData.address,
-      cus_city: order.billingData.city,
-      cus_country: order.billingData.country,
-      cus_postcode: order.billingData.postalCode,
-      cus_phone: order.billingData.contactNumber,
-      cus_fax: "01711111111",
-      ship_name: order.instructorName,
-      ship_add1: order.instructorEmail,
-      ship_add2: "Dhaka",
-      ship_city: "Dhaka",
-      ship_state: "Dhaka",
-      ship_postcode: 1000,
-      ship_country: "Bangladesh",
-    };
-
-    // console.log(data);
-    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
-    sslcz.init(data).then((apiResponse) => {
-      // Redirect the user to payment gateway
-      let GatewayPageURL = apiResponse.GatewayPageURL;
-      //   console.log(GatewayPageURL
-      res.json({ GatewayPageURL });
-
-      const finalOrder = {
-        data,
-        paidStatus: false,
-        transectionId: tran_id,
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
+      // console.log(order.price);
+      const data = {
+        total_amount: order.price,
+        currency: "BDT",
+        tran_id: tran_id, // use unique tran_id for each api call
+        success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
+        fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
+        cancel_url: "https://spoken-english-65d22.web.app/cancel",
+        ipn_url: "https://spoken-english-65d22.web.app/ipn",
+        shipping_method: "Courier",
+        product_name: order.courseName,
+        product_category: "Educational",
+        product_profile: "general",
+        cus_name: order.billingData.fullName,
+        cus_email: order.billingData.email,
+        cus_add1: order.billingData.address,
+        cus_city: order.billingData.city,
+        cus_country: order.billingData.country,
+        cus_postcode: order.billingData.postalCode,
+        cus_phone: order.billingData.contactNumber,
+        cus_fax: "01711111111",
+        ship_name: order.instructorName,
+        ship_add1: order.instructorEmail,
+        ship_add2: "Dhaka",
+        ship_city: "Dhaka",
+        ship_state: "Dhaka",
+        ship_postcode: 1000,
+        ship_country: "Bangladesh",
       };
 
-      const result = orderCollection.insertOne(finalOrder);
+      // console.log(data);
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+      sslcz.init(data).then((apiResponse) => {
+        // Redirect the user to payment gateway
+        let GatewayPageURL = apiResponse.GatewayPageURL;
+        //   console.log(GatewayPageURL
+        res.json({ GatewayPageURL });
 
-      // console.log("Redirecting to: ", GatewayPageURL);
+        const finalOrder = {
+          data,
+          paidStatus: false,
+          transectionId: tran_id,
+        };
+
+        const result = orderCollection.insertOne(finalOrder);
+
+        // console.log("Redirecting to: ", GatewayPageURL);
+      });
     });
-    
-    
-  });
-    
+
     app.put("/payment/success/:tranId", async (req, res) => {
       console.log(req.params.tranId);
       const transId = req.params.tranId;
@@ -191,18 +185,18 @@ async function run() {
       }
     });
 
-app.post("/payment/fail/:tranId", async (req, res) => {
-  // console.log(req.params.tranId);
+    app.post("/payment/fail/:tranId", async (req, res) => {
+      // console.log(req.params.tranId);
 
-  const result = await orderCollection.deleteOne({
-    transectionId: req.params.tranId,
-  });
-  if (result.deletedCount) {
-    res.redirect(`https://spoken-english-65d22.web.app/payment/fail/${req.params.tranId}`);
-  }
-});
-
-
+      const result = await orderCollection.deleteOne({
+        transectionId: req.params.tranId,
+      });
+      if (result.deletedCount) {
+        res.redirect(
+          `https://spoken-english-65d22.web.app/payment/fail/${req.params.tranId}`
+        );
+      }
+    });
 
     app.get("/enrolled-courses/:userId", async (req, res) => {
       const userId = req.params.userId;
@@ -252,27 +246,24 @@ app.post("/payment/fail/:tranId", async (req, res) => {
       const result = await coursesCollection.find().toArray();
       res.send(result);
     });
-        // Start Course from Student Dashboard
-        app.get("/startCourse/:courseName", async (req, res) => {
-            const courseName = req.params.courseName;
-            // console.log(courseName);
-            try {
-                // Fetch course details by courseName from your database
-                const course = await coursesCollection.findOne({ courseName });
-                // console.log(course.courseVideos);
-                if (!course) {
-                    return res.status(404).json({ error: 'Course not found' });
-                }
+    // Start Course from Student Dashboard
+    app.get("/startCourse/:courseName", async (req, res) => {
+      const courseName = req.params.courseName;
+      // console.log(courseName);
+      try {
+        // Fetch course details by courseName from your database
+        const course = await coursesCollection.findOne({ courseName });
+        // console.log(course.courseVideos);
+        if (!course) {
+          return res.status(404).json({ error: "Course not found" });
+        }
 
-                res.json(course);
-            } catch (error) {
-                console.error("Error fetching course details:", error);
-                res.status(500).json({ error: "Internal server error" });
-            }
-        });
-
-
-
+        res.json(course);
+      } catch (error) {
+        console.error("Error fetching course details:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    });
 
     app.get("/course/:id", async (req, res) => {
       const courseId = req.params.id;
@@ -405,7 +396,7 @@ app.post("/payment/fail/:tranId", async (req, res) => {
     app.get("/get/applications", async (req, res) => {
       try {
         const applications = await FormCollection.find()
-          .sort({createAt:-1})
+          .sort({ createAt: -1 })
           .toArray();
         res.status(200).json(applications);
       } catch (error) {
@@ -700,6 +691,49 @@ app.post("/payment/fail/:tranId", async (req, res) => {
     });
 
     // get feedback
+
+    // Send friend request
+
+    app.post("/send-friend-request/:userId/:friendId", async (req, res) => {
+      const { userId, friendId } = req.params;
+      console.log(userId, friendId);
+      const users = await userCollection.find().toArray();
+      const user = users.find((u) => u.uid === userId);
+      const friend = users.find((u) => u.uid === friendId);
+      console.log(user, friend);
+      if (!user || !friend) {
+        return res.status(404).json({ message: "User(s) not found" });
+      }
+      const friends ={ userId, friendId ,request:'pending'};
+
+      // Check if friend request already exists
+      const existingFriendRequest = await FriendRequest.findOne({
+        userId,
+        friendId,
+      });
+      
+  if (existingFriendRequest) {
+    return res.json({
+      message: "Friend request already exists",
+      friendRequest: existingFriendRequest,
+    });
+  }
+      const result = await FriendRequest.insertOne(friends);
+      res.send(result);
+    });
+// get friend request 
+   app.get("/get-all-friends/:userId", async (req, res) => {
+     const { userId } = req.params;
+      const users = await userCollection.find().toArray();
+     const user = users.find((u) => u.uid === userId);
+
+     if (!user) {
+       return res.status(404).json({ message: "User not found" });
+     }
+
+     const friends = users.filter((u) => user.friends.includes(u.id));
+     res.json(friends);
+   });
 
     app.get("/get/Feedback", async (req, res) => {
       const result = await FeedbackCollection.find()
