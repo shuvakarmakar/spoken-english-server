@@ -100,6 +100,7 @@ async function run() {
     const FormCollection = client.db("Spoken-English").collection("instructorApplications");
     const FeedbackCollection = client .db("Spoken-English").collection("feedback");
     const FriendRequest = client .db("Spoken-English").collection("FriendRequest");
+    const Friends = client .db("Spoken-English").collection("Friends");
 
     // For Transection Id of SSL Commerze
     const tran_id = new ObjectId().toString();
@@ -396,7 +397,7 @@ async function run() {
     app.get("/get/applications", async (req, res) => {
       try {
         const applications = await FormCollection.find()
-          .sort({ createAt: -1 })
+          .sort({createAt:-1})
           .toArray();
         res.status(200).json(applications);
       } catch (error) {
@@ -704,12 +705,13 @@ async function run() {
       if (!user || !friend) {
         return res.status(404).json({ message: "User(s) not found" });
       }
-      const friends ={ userId, friendId ,request:'pending'};
+      const friends = { userId, friendId, user, request: "pending" };
 
       // Check if friend request already exists
       const existingFriendRequest = await FriendRequest.findOne({
         userId,
         friendId,
+        
       });
       
   if (existingFriendRequest) {
@@ -721,19 +723,43 @@ async function run() {
       const result = await FriendRequest.insertOne(friends);
       res.send(result);
     });
-// get friend request 
-   app.get("/get-all-friends/:userId", async (req, res) => {
-     const { userId } = req.params;
-      const users = await userCollection.find().toArray();
-     const user = users.find((u) => u.uid === userId);
+// get friend request
+ app.get("/get-friend-requests/:id", async (req, res) => {
+   const { id } = req.params;
 
-     if (!user) {
-       return res.status(404).json({ message: "User not found" });
-     }
+   // Assuming you have a FriendRequest collection
+   console.log(id);
+   const filter = {friendId: id };
+   const friendRequests = await FriendRequest.find(filter).toArray();
 
-     const friends = users.filter((u) => user.friends.includes(u.id));
-     res.json(friends);
-   });
+   if (!friendRequests) {
+     return res.status(404).json({ message: "Friend requests not found" });
+   }
+
+   res.send(friendRequests );
+ });
+    
+    // accept request 
+
+    app.post('accept/friendRequest/:userId/:friendId', async (req, res) => { 
+
+      const { userId, friendId } = req.params;
+           const users = await userCollection.find().toArray();
+          const user = users.find((u) => u.uid === userId);
+          const friend = users.find((u) => u.uid === friendId);
+      
+
+    })
+    
+    // delete all friend requests
+
+    app.delete("/delete-friend-requests/:id", async (req, res) => { 
+      const id = req.params.id;
+       const  filter={_id: new ObjectId(id)}
+      const result = await FriendRequest.deleteOne(filter);
+       res.send(result)
+    });
+
 
     app.get("/get/Feedback", async (req, res) => {
       const result = await FeedbackCollection.find()
