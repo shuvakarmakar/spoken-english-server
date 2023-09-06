@@ -58,6 +58,7 @@ app.listen(port, () => {
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { send } = require("process");
+const { CLIENT_RENEG_LIMIT } = require("tls");
 const uri = `mongodb+srv://${process.env.DB_UserName}:${process.env.DB_Key}@cluster0.yo1upio.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -106,7 +107,7 @@ async function run() {
     const FriendRequest = client
       .db("Spoken-English")
       .collection("FriendRequest");
-    const Friends = client.db("Spoken-English").collection("Friends");
+    const FriendsCollection = client.db("Spoken-English").collection("Friends");
 
     // For Transection Id of SSL Commerze
     const tran_id = new ObjectId().toString();
@@ -745,7 +746,7 @@ async function run() {
       if (!user || !friend) {
         return res.status(404).json({ message: "User(s) not found" });
       }
-      const friends = { userId, friendId, user, request: "pending" };
+      const friends = { userId, friendId, user, request:false };
 
       // Check if friend request already exists
       const existingFriendRequest = await FriendRequest.findOne({
@@ -777,14 +778,83 @@ async function run() {
 
       res.send(friendRequests);
     });
+    // get accepted friend
+
+  app.get("/get-friend/:id", async (req, res) => {
+    const { id } = req.params;
+    console.log(id);
+
+    try {
+      // Assuming you have an array called 'users' that contains both user and friend objects
+      const friends = await FriendsCollection.find().toArray();
+
+      // Search for the 'id' in both 'user.uid' and 'friend.uid'
+      const result = friends.find(
+        (user) => user.user?.uid === id || user.friend?.uid === id
+      );
+
+      if (!result) {
+        return res.status(404).json({ message: "User or friend not found" });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
     // accept request
+app.post("/accept/friendRequest/:userId/:friendId", async (req, res) => {
+  const { userId, friendId } = req.params;
+  const { id } = req.body;
+  console.log(userId, friendId, id);
+  const users = await userCollection.find().toArray();
+  const user = users.find((u) => u.uid === userId);
+  const friend = users.find((u) => u.uid === friendId);
+  const AcceptedFriend = { user, friend };
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      request: true,
+    },
+  };
+  const result = await FriendRequest.updateOne(filter, updateDoc);
+  console.log(result);
+  if (result.modifiedCount > 0) {
+    const resultInsert = await FriendsCollection.insertOne(AcceptedFriend);
+    console.log(resultInsert);
+    if (resultInsert.insertedId) {
+      const filterDelete = { _id: new ObjectId(id) };
+      const resultDelete = await FriendRequest.deleteOne(filterDelete);
+      console.log(resultDelete);
+      res
+        .status(200)
+        .send("Updated and inserted successfully and deleted from Request");
+    } else {
+      res.status(500).send("Failed to insert into FriendsCollection");
+    }
+  } else {
+    res.status(500).send("Failed to update FriendRequest");
+  }
+});
+    
+    
 
-    app.post("accept/friendRequest/:userId/:friendId", async (req, res) => {
-      const { userId, friendId } = req.params;
-      const users = await userCollection.find().toArray();
-      const user = users.find((u) => u.uid === userId);
-      const friend = users.find((u) => u.uid === friendId);
+    // get friend request
+    app.get("/get-AcceptedFriend/:id", async (req, res) => {
+      const { id } = req.params;
+
+      // Assuming you have a FriendRequest collection
+      console.log(id);
+      const filter = { friendId: id };
+      const friendRequests = await FriendsCollection.find(filter).toArray();
+
+      if (!friendRequests) {
+        return res.status(404).json({ message: "Friend  not found" });
+      }
+
+      res.send(friendRequests);
     });
 
     // delete all friend requests
