@@ -789,7 +789,7 @@ async function run() {
       const friends = await FriendsCollection.find().toArray();
 
       // Search for the 'id' in both 'user.uid' and 'friend.uid'
-      const result = friends.find(
+      const result = friends.filter(
         (user) => user.user?.uid === id || user.friend?.uid === id
       );
 
