@@ -98,6 +98,7 @@ async function run() {
     const userCollection = client.db("Spoken-English").collection("users");
     const orderCollection = client.db("Spoken-English").collection("orders");
     const HelpCollection = client.db("Spoken-English").collection("helpForms");
+    const SendCallRequestLInkCollection = client.db("Spoken-English").collection("SendCallLink");
     const FormCollection = client
       .db("Spoken-English")
       .collection("instructorApplications");
@@ -789,7 +790,7 @@ async function run() {
       const friends = await FriendsCollection.find().toArray();
 
       // Search for the 'id' in both 'user.uid' and 'friend.uid'
-      const result = friends.find(
+      const result = friends.filter(
         (user) => user.user?.uid === id || user.friend?.uid === id
       );
 
@@ -865,6 +866,28 @@ app.post("/accept/friendRequest/:userId/:friendId", async (req, res) => {
       const result = await FriendRequest.deleteOne(filter);
       res.send(result);
     });
+
+    // send Call link request
+app.post("/SendCall/:id", async (req, res) => {
+  const id = req.params.id;
+  const link = req.body;
+  const createAt = new Date();
+
+  console.log(id, link);
+  const Link = { link, createAt ,id};
+  const result = await SendCallRequestLInkCollection.insertOne(Link);
+
+  // You can send a simple JSON response
+  res.send(result);
+});
+    app.get('/getCallMessages/:id', async (req, res) => { 
+      
+      const id = req.params.id;
+      const Request = await SendCallRequestLInkCollection.find().toArray()
+      const Message = Request.filter(re => re.id == id)
+      res.send(Message);
+    })
+
 
     app.get("/get/Feedback", async (req, res) => {
       const result = await FeedbackCollection.find()
