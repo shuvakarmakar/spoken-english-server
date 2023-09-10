@@ -9,6 +9,7 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+
 // Ping Endpoint
 app.get("/", (req, res) => {
     res.send("Spoken English Server is running");
