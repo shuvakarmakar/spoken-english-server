@@ -879,20 +879,38 @@ async function run() {
       const link = req.body;
       const createAt = new Date();
 
-      console.log(id, link);
-      const Link = { link, createAt, id };
-      const result = await SendCallRequestLInkCollection.insertOne(Link);
+  console.log(id, link);
+  const Link = { link, createAt ,id};
+  const result = await SendCallRequestLInkCollection.insertOne(Link);
 
-      // You can send a simple JSON response
-      res.send(result);
-    });
-    app.get('/getCallMessages/:id', async (req, res) => {
-
+  // You can send a simple JSON response
+  res.send(result);
+});
+    app.get('/getCallMessages/:id', async (req, res) => { 
+      
       const id = req.params.id;
-      const Request = await SendCallRequestLInkCollection.find().toArray()
-      const Message = Request.filter(re => re.id == id)
-      res.send(Message);
-    })
+
+      try {
+        const messages = await SendCallRequestLInkCollection.find({ id })
+          .sort({ createAt: -1 })
+          .toArray();
+        res.send(messages);
+      } catch (error) {
+        console.error("Error fetching and sorting messages:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    // delete notification  
+    app.delete("/deleteNotification/:id", async (req, res) => { 
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const result = await SendCallRequestLInkCollection.deleteOne(filter)
+      res.send(result)
+
+
+    });
+
 
 
     app.get("/get/Feedback", async (req, res) => {
