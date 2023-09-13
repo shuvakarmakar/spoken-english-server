@@ -94,6 +94,7 @@ async function run() {
 
     //DB Collections
     const blogsCollection = client.db("Spoken-English").collection("blogs");
+    const QuizCollection = client.db("Spoken-English").collection("quiz");
     const coursesCollection = client.db("Spoken-English").collection("Courses");
     const userCollection = client.db("Spoken-English").collection("users");
     const orderCollection = client.db("Spoken-English").collection("orders");
@@ -236,7 +237,12 @@ async function run() {
         res.status(500).json({ error: "Internal server error" });
       }
     });
+    // Quiz 
 
+    app.get("/quiz", async (req, res) => {
+      const result = await QuizCollection.find().toArray();
+      res.send(result);
+    });
     // Blogs
     app.get("/blogs", async (req, res) => {
       const result = await blogsCollection.find().toArray();
@@ -747,7 +753,7 @@ async function run() {
       if (!user || !friend) {
         return res.status(404).json({ message: "User(s) not found" });
       }
-      const friends = { userId, friendId, user, request:false };
+      const friends = { userId, friendId, user, request: false };
 
       // Check if friend request already exists
       const existingFriendRequest = await FriendRequest.findOne({
@@ -781,66 +787,66 @@ async function run() {
     });
     // get accepted friend
 
-  app.get("/get-friend/:id", async (req, res) => {
-    const { id } = req.params;
-    console.log(id);
+    app.get("/get-friend/:id", async (req, res) => {
+      const { id } = req.params;
+      console.log(id);
 
-    try {
-      // Assuming you have an array called 'users' that contains both user and friend objects
-      const friends = await FriendsCollection.find().toArray();
+      try {
+        // Assuming you have an array called 'users' that contains both user and friend objects
+        const friends = await FriendsCollection.find().toArray();
 
-      // Search for the 'id' in both 'user.uid' and 'friend.uid'
-      const result = friends.filter(
-        (user) => user.user?.uid === id || user.friend?.uid === id
-      );
+        // Search for the 'id' in both 'user.uid' and 'friend.uid'
+        const result = friends.filter(
+          (user) => user.user?.uid === id || user.friend?.uid === id
+        );
 
-      if (!result) {
-        return res.status(404).json({ message: "User or friend not found" });
+        if (!result) {
+          return res.status(404).json({ message: "User or friend not found" });
+        }
+
+        res.json(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
       }
-
-      res.json(result);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
+    });
 
     // accept request
-app.post("/accept/friendRequest/:userId/:friendId", async (req, res) => {
-  const { userId, friendId } = req.params;
-  const { id } = req.body;
-  console.log(userId, friendId, id);
-  const users = await userCollection.find().toArray();
-  const user = users.find((u) => u.uid === userId);
-  const friend = users.find((u) => u.uid === friendId);
-  const AcceptedFriend = { user, friend };
-  const filter = { _id: new ObjectId(id) };
-  const updateDoc = {
-    $set: {
-      request: true,
-    },
-  };
-  const result = await FriendRequest.updateOne(filter, updateDoc);
-  console.log(result);
-  if (result.modifiedCount > 0) {
-    const resultInsert = await FriendsCollection.insertOne(AcceptedFriend);
-    console.log(resultInsert);
-    if (resultInsert.insertedId) {
-      const filterDelete = { _id: new ObjectId(id) };
-      const resultDelete = await FriendRequest.deleteOne(filterDelete);
-      console.log(resultDelete);
-      res
-        .status(200)
-        .send("Updated and inserted successfully and deleted from Request");
-    } else {
-      res.status(500).send("Failed to insert into FriendsCollection");
-    }
-  } else {
-    res.status(500).send("Failed to update FriendRequest");
-  }
-});
-    
-    
+    app.post("/accept/friendRequest/:userId/:friendId", async (req, res) => {
+      const { userId, friendId } = req.params;
+      const { id } = req.body;
+      console.log(userId, friendId, id);
+      const users = await userCollection.find().toArray();
+      const user = users.find((u) => u.uid === userId);
+      const friend = users.find((u) => u.uid === friendId);
+      const AcceptedFriend = { user, friend };
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          request: true,
+        },
+      };
+      const result = await FriendRequest.updateOne(filter, updateDoc);
+      console.log(result);
+      if (result.modifiedCount > 0) {
+        const resultInsert = await FriendsCollection.insertOne(AcceptedFriend);
+        console.log(resultInsert);
+        if (resultInsert.insertedId) {
+          const filterDelete = { _id: new ObjectId(id) };
+          const resultDelete = await FriendRequest.deleteOne(filterDelete);
+          console.log(resultDelete);
+          res
+            .status(200)
+            .send("Updated and inserted successfully and deleted from Request");
+        } else {
+          res.status(500).send("Failed to insert into FriendsCollection");
+        }
+      } else {
+        res.status(500).send("Failed to update FriendRequest");
+      }
+    });
+
+
 
     // get friend request
     app.get("/get-AcceptedFriend/:id", async (req, res) => {
@@ -868,20 +874,20 @@ app.post("/accept/friendRequest/:userId/:friendId", async (req, res) => {
     });
 
     // send Call link request
-app.post("/SendCall/:id", async (req, res) => {
-  const id = req.params.id;
-  const link = req.body;
-  const createAt = new Date();
+    app.post("/SendCall/:id", async (req, res) => {
+      const id = req.params.id;
+      const link = req.body;
+      const createAt = new Date();
 
-  console.log(id, link);
-  const Link = { link, createAt ,id};
-  const result = await SendCallRequestLInkCollection.insertOne(Link);
+      console.log(id, link);
+      const Link = { link, createAt, id };
+      const result = await SendCallRequestLInkCollection.insertOne(Link);
 
-  // You can send a simple JSON response
-  res.send(result);
-});
-    app.get('/getCallMessages/:id', async (req, res) => { 
-      
+      // You can send a simple JSON response
+      res.send(result);
+    });
+    app.get('/getCallMessages/:id', async (req, res) => {
+
       const id = req.params.id;
       const Request = await SendCallRequestLInkCollection.find().toArray()
       const Message = Request.filter(re => re.id == id)
