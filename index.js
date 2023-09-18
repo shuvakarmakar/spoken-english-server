@@ -124,7 +124,7 @@ async function run() {
         total_amount: order.price,
         currency: "BDT",
         tran_id: tran_id, // use unique tran_id for each api call
-        success_url: `https://spoken-english-65d22.web.app/payment/success/${tran_id}`,
+        success_url: `http://spoken-english-65d22.web.app/payment/success/${tran_id}`,
         fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
         cancel_url: "https://spoken-english-65d22.web.app/cancel",
         ipn_url: "https://spoken-english-65d22.web.app/ipn",
@@ -175,17 +175,19 @@ async function run() {
 
       try {
         if (transId) {
-          const result = await orderCollection.updateOne(
-            { transectionId: transId },
-            {
+
+            const filter = { transectionId: transId };
+            const updateDoc = {
               $set: {
                 paidStatus: true,
+                disabled: true,
               },
-            }
-          );
+            };
+          const result = await orderCollection.updateOne(updateDoc, filter);
+          console.log(result);
           if (result.modifiedCount > 0) {
             res.redirect(
-              `https://spoken-english-65d22.web.app/payment/success/${req.params.tranId}`
+              `http://spoken-english-65d22.web.app/payment/success/${req.params.tranId}`
             );
           }
         }
