@@ -122,7 +122,7 @@ async function run() {
       // console.log(order.price);
       const data = {
         total_amount: order.price,
-        currency: "BDT",
+        currency: "USD",
         tran_id: tran_id, // use unique tran_id for each api call
         success_url: `http://spoken-english-65d22.web.app/payment/success/${tran_id}`,
         fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
@@ -222,13 +222,13 @@ async function run() {
         // Extract relevant course information from user's orders
         const enrolledCourses = userOrders.map((order) => {
           return {
-            _id: order.transectionId,
-            product_name: order.data.product_name,
+            _id:order.transectionId,
+            product_name:order.data.product_name,
             instructor_name: order.data.ship_name,
             instructor_email: order.data.ship_add1,
             total_amount: order.data.total_amount,
-            currency: order.data.currency,
-            paidStatus: order.paidStatus,
+            currency:order.data.currency,
+            paidStatus:order.paidStatus,
           };
         });
 
@@ -328,6 +328,64 @@ async function run() {
         }
       }
     );
+
+    // get courses by id
+  app.get("/getCourse/:id", async (req, res) => {
+    const id = req.params.id;
+    // console.log(instructorEmail);
+  console.log(id);
+    try {
+      // Fetch enrolled courses for the instructor
+      const enrolledCourses = await coursesCollection
+        .findOne({ _id: new ObjectId(id) });
+
+      // Extract relevant course information from enrolled courses
+      // const courses = enrolledCourses.map((course) => {
+      //   return {
+      //     _id: course._id,
+      //     courseName: course.courseName,
+      //     availableSeats: course.availableSeats,
+      //     imageURL: course.imageURL,
+      //     // Include other course information here
+      //   };
+      // });
+
+      res.json(enrolledCourses);
+    } catch (error) {
+      console.error("Error fetching enrolled courses:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+    // update classes
+
+    app.put("/updateCourse/:id", async (req, res) => { 
+      const id = req.params.id;
+      const data = req.body;
+      const filter = { _id: new ObjectId(id) }
+
+       const updateDoc = {
+         $set: {
+           price: data.price,
+           numberOfStudents:data.numberOfStudents,
+           availableSeats: data.availableSeats,
+           instructorName:data.instructorName,
+           courseName:data.courseName,
+           courseDetails:data.courseDetails,
+           imageURL:data.imageURL,
+           courseVideos:data.courseVideos,
+         },
+       };
+
+      const result = await coursesCollection.updateOne(filter, updateDoc);
+      res.send(result);
+
+
+
+    });
+
+
+
 
     // Delete Course from Instructor Dashboard
     app.delete("/deleteCourse/:id", async (req, res) => {
