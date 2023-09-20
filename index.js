@@ -117,12 +117,15 @@ async function run() {
     // FOr Payment Gateway
 
     app.post("/order", async (req, res) => {
+        
       const order = req.body;
+      const take = parseInt(109.91 * order.price);
+       console.log(take); 
       // const courseDetail = await coursesCollection.findOne({ _id: new ObjectId(courseId) });
       // console.log(order.price);
       const data = {
-        total_amount: order.price,
-        currency: "USD",
+        total_amount: take,
+        currency: "BDT",
         tran_id: tran_id, // use unique tran_id for each api call
         success_url: `http://spoken-english-65d22.web.app/payment/success/${tran_id}`,
         fail_url: `https://spoken-english-65d22.web.app/payment/fail/${tran_id}`,
@@ -156,11 +159,13 @@ async function run() {
         let GatewayPageURL = apiResponse.GatewayPageURL;
         //   console.log(GatewayPageURL
         res.json({ GatewayPageURL });
-
+         const date=new Date();
         const finalOrder = {
           data,
           paidStatus: false,
           transectionId: tran_id,
+          date,
+
         };
 
         const result = orderCollection.insertOne(finalOrder);
